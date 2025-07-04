@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VenuSwar Recommend</title>
+</head>
+<body style="margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:linear-gradient(135deg, #6c5ce7, #00b894);">
+
+  <!-- Top App Name Bar -->
+  <div style="width:100%; padding:20px; background:linear-gradient(90deg, #00b894, #6c5ce7); color:white; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.3);">
+    <h1 style="margin:0; font-size:32px;">🎶 VenuSwar</h1>
+    <p style="margin:5px 0 0 0; font-size:16px;">Your Personalized Mood-Based Music Recommender</p>
+  </div>
+
+  <div style="max-width:750px; margin:50px auto; background:white; padding:40px; border-radius:20px; box-shadow:0 15px 30px rgba(0,0,0,0.3);">
+    
+    <form action="/recommend" method="POST" style="display:flex; flex-direction:column;">
+
+      <label style="margin-top:15px; font-weight:bold; font-size:18px;">🎧 Select Mood:</label>
+      <select name="mood" required style="padding:12px; border:2px solid #6c5ce7; border-radius:8px; font-size:16px;">
+        {% for mood in moods %}
+          <option value="{{ mood }}">{{ mood }}</option>
+        {% endfor %}
+      </select>
+
+      <label style="margin-top:20px; font-weight:bold; font-size:18px;">🌐 Select Language:</label>
+      <select name="language" required onchange="updateArtists(this.value)" style="padding:12px; border:2px solid #6c5ce7; border-radius:8px; font-size:16px;">
+        {% for lang in languages %}
+          <option value="{{ lang }}">{{ lang }}</option>
+        {% endfor %}
+      </select>
+
+      <label style="margin-top:20px; font-weight:bold; font-size:18px;">🎤 Select Artist:</label>
+      <select name="artist" id="artist-select" required style="padding:12px; border:2px solid #6c5ce7; border-radius:8px; font-size:16px;">
+        <!-- Options populated by JS -->
+      </select>
+
+      <button type="submit" style="margin-top:30px; padding:14px; background:#6c5ce7; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer; transition:0.3s;">🎵 Get Recommendations</button>
+    </form>
+
+    <div style="text-align:center; margin-top:30px;">
+      <a href="/logout" style="color:#6c5ce7; text-decoration:none; font-size:16px;">🔒 Logout</a>
+    </div>
+
+  </div>
+
+  <script>
+    const artistDB = {{ artist_db | tojson }};
+    function updateArtists(lang) {
+      const select = document.getElementById('artist-select');
+      select.innerHTML = '';
+      artistDB[lang].forEach(artist => {
+        const opt = document.createElement('option');
+        opt.value = artist;
+        opt.innerHTML = artist;
+        select.appendChild(opt);
+      });
+    }
+    window.onload = () => updateArtists(document.querySelector('select[name="language"]').value);
+  </script>
+
+</body>
+</html>
