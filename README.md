@@ -17,6 +17,7 @@ VenuSwar is a **music recommendation web application** that uses the **Spotify W
 ## 🛠️ **Tech Stack**
 
 - **Python**
+- **Transformer**
 - **Spotipy** (Spotify Web API library)
 - **Flask** or **Streamlit** (for web framework)
 - **HTML/CSS** (frontend templates)
