@@ -14,16 +14,11 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
 
-
 with app.app_context():
     db.create_all()
-
     if not User.query.first():
-        user1 = User(username="venu", password="123")
-        user2 = User(username="vidya", password="123")
-        db.session.add_all([user1, user2])
+        db.session.add_all([User(username="venu", password="123"), User(username="vidya", password="123")])
         db.session.commit()
-
 
 SPOTIFY_CLIENT_ID = "3f77d1e5abc646468005e90a6df0776d"
 SPOTIFY_CLIENT_SECRET = "dd833d2e654a4d93a3b96b100011c39c"
@@ -41,57 +36,111 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
         if user:
             session['username'] = username
-            return redirect(url_for('recommend'))
+            return redirect(url_for('categories'))
         else:
             return "Invalid credentials"
     return render_template('login.html')
+
+@app.route('/categories')
+def categories():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('categories.html')
 
 @app.route('/recommend', methods=['GET', 'POST'])
 def recommend():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    moods = ['Happy', 'Sad', 'Romantic', 'Energetic', 'Relaxing']
+    category = request.args.get('category', 'Mood')
     languages = ['Telugu', 'Kannada', 'Hindi']
-
-    artist_db = {
+    heroes = {
         'Telugu': [
-        'Sid Sriram', 'Anurag Kulkarni', 'Geetha Madhuri', 'Karthik', 'Chinmayi',
-        'Devi Sri Prasad', 'Thaman', 'Mangli', 'SP Balasubrahmanyam', 'Kaala Bhairava',
-        'Hemachandra', 'Shankar Mahadevan', 'Sunitha Upadrashta'
+            'Mahesh Babu', 'Allu Arjun', 'Pawan Kalyan', 'Prabhas', 'Ram Charan',
+            'Nani', 'Naga Chaitanya', 'Ravi Teja', 'Vijay Deverakonda', 'Chiranjeevi',
+            'Balakrishna', 'Venkatesh', 'Nithiin', 'Sai Dharam Tej', 'Varun Tej'
         ],
-     'Kannada': [
-        'Vijay Prakash', 'Sonu Nigam', 'Armaan Malik', 'Shreya Ghoshal', 'Rajesh Krishnan',
-        'Chandan Shetty', 'Sanjith Hegde', 'Anuradha Bhat', 'Karthik', 'Hariharan'
+        'Kannada': [
+            'Yash', 'Puneeth Rajkumar', 'Darshan', 'Sudeep', 'Ganesh',
+            'Shiva Rajkumar', 'Rakshit Shetty', 'Dhananjay', 'Upendra', 'Vijay Raghavendra'
         ],
         'Hindi': [
-        'Arijit Singh', 'Shreya Ghoshal', 'Neha Kakkar', 'Sonu Nigam', 'A.R.Rahman',
-        'Jubin Nautiyal', 'Armaan Malik', 'Sunidhi Chauhan', 'Atif Aslam', 'KK',
-        'Badshah', 'Yo Yo Honey Singh', 'Udit Narayan', 'Alka Yagnik', 'Lata Mangeshkar'
-    ]
+            'Shahrukh Khan', 'Salman Khan', 'Aamir Khan', 'Akshay Kumar', 'Ajay Devgn',
+            'Ranveer Singh', 'Ranbir Kapoor', 'Varun Dhawan', 'Hrithik Roshan', 'Tiger Shroff',
+            'Sidharth Malhotra', 'Kartik Aaryan', 'Rajkummar Rao', 'Ayushmann Khurrana', 'Vicky Kaushal'
+        ]
     }
 
-
+    moods = ['Happy', 'Sad', 'Romantic', 'Energetic', 'Relaxing']
     songs = []
+
     if request.method == 'POST':
-        selected_mood = request.form['mood']
-        selected_language = request.form['language']
-        selected_artist = request.form['artist']
-        query = f"{selected_mood} {selected_language} {selected_artist}"
+        selected_language = request.form.get('language', '')
+        selected_year = request.form.get('year', '')
+        selected_mood = request.form.get('mood', '')
+        selected_hero = request.form.get('hero', '')
+
+        if category == 'Mood':
+            query = f"{selected_mood} {selected_language} {selected_year}"
+        elif category == 'Hero':
+            query = f"{selected_hero} {selected_language} songs"
+        elif category == 'Trending':
+            query = f"Trending {selected_language} songs"
+        elif category == 'Janapada':
+            query = f"Janapada {selected_language} songs"
+        elif category == 'Item Songs':
+            query = f"Item songs {selected_language}"
+        elif category == 'Pop Songs':
+            query = f"Pop songs {selected_language}"
+        else:
+            query = "Top songs"
 
         results = sp.search(q=query, type='track', limit=5, market="IN")
         songs = [
             {
                 'name': track['name'],
                 'artist': track['artists'][0]['name'],
-                'url': track['preview_url'],
+                'image': track['album']['images'][0]['url'],
                 'external': track['external_urls']['spotify']
             }
             for track in results['tracks']['items']
         ]
-        return render_template('player.html', songs=songs, mood=selected_mood, language=selected_language, artist=selected_artist)
 
-    return render_template('recommend.html', moods=moods, languages=languages, artist_db=artist_db)
+        # Store results and details in session for /player
+        session['songs'] = songs
+        session['category'] = category
+        session['mood'] = selected_mood
+        session['language'] = selected_language
+        session['year'] = selected_year
+        session['hero'] = selected_hero
+
+        return redirect(url_for('player'))
+
+    return render_template('recommend.html',
+                           category=category,
+                           languages=languages,
+                           moods=moods,
+                           heroes=heroes)
+
+@app.route('/player')
+def player():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    songs = session.get('songs', [])
+    category = session.get('category', '')
+    mood = session.get('mood', '')
+    language = session.get('language', '')
+    year = session.get('year', '')
+    hero = session.get('hero', '')
+
+    return render_template('player.html',
+                           songs=songs,
+                           category=category,
+                           mood=mood,
+                           language=language,
+                           year=year,
+                           hero=hero)
 
 @app.route('/logout')
 def logout():

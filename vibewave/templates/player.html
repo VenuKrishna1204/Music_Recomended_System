@@ -6,32 +6,42 @@
 </head>
 <body style="margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:linear-gradient(135deg, #6c5ce7, #00b894);">
 
-  <!-- Top App Name Bar -->
-  <div style="width:100%; padding:20px; background:linear-gradient(90deg, #00b894, #6c5ce7); color:white; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.3);">
-    <h1 style="margin:0; font-size:32px;">🎶 VenuSwar</h1>
-    <p style="margin:5px 0 0 0; font-size:16px;">Your Personalized Music Player</p>
+  <!-- Top Bar -->
+  <div style="width:100%; padding:20px; background:linear-gradient(90deg, #00b894, #6c5ce7); color:white; text-align:center;">
+    <h1>🎶 VenuSwar</h1>
+    <p>{{ category }} Recommendations</p>
   </div>
 
-  <div style="max-width:800px; margin:50px auto; background:white; padding:40px; border-radius:20px; box-shadow:0 15px 30px rgba(0,0,0,0.3);">
+  <div style="max-width:800px; margin:50px auto; background:white; padding:40px; border-radius:20px;">
+    <h2 style="text-align:center; color:#6c5ce7;">🎵 Recommended Songs</h2>
 
-    <h2 style="text-align:center; color:#6c5ce7; font-size:32px;">🎵 Recommended Songs</h2>
+    <!-- Display category specific info -->
+    <div style="text-align:center; color:#636e72; font-size:16px; margin-bottom:20px;">
+      {% if category == "Mood" %}
+        <strong>Mood:</strong> {{ mood }} | <strong>Language:</strong> {{ language }} | <strong>Year:</strong> {{ year }}
+      {% elif category == "Hero" %}
+        <strong>Hero:</strong> {{ hero }} | <strong>Language:</strong> {{ language }}
+      {% else %}
+        <strong>Category:</strong> {{ category }} | <strong>Language:</strong> {{ language }}
+      {% endif %}
+    </div>
 
-    <p style="text-align:center; color:#636e72; font-size:16px;"><strong>Mood:</strong> {{ mood }} | <strong>Language:</strong> {{ language }} | <strong>Artist:</strong> {{ artist }}</p>
-
-    <ul style="list-style:none; padding:0; margin-top:30px;">
-      {% for song in songs %}
-        <li style="background:linear-gradient(135deg, #74ebd5, #ACB6E5); margin:15px 0; padding:20px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
-          <p style="margin:0; font-weight:bold; color:#2d3436; font-size:18px;">🎧 {{ song.name }}</p>
-          <p style="margin:8px 0; color:#2d3436; font-size:15px;">by {{ song.artist }}</p>
-          <p style="margin:8px 0;"><a href="{{ song.external }}" target="_blank" style="color:#6c5ce7; text-decoration:none; font-weight:bold;">▶ Listen on Spotify</a></p>
-        </li>
-      {% endfor %}
-    </ul>
+    {% if songs %}
+      <ul style="list-style:none; padding:0;">
+        {% for song in songs %}
+          <li style="margin:20px 0; padding:20px; background:linear-gradient(135deg, #74ebd5, #ACB6E5); border-radius:12px;">
+            <img src="{{ song.image }}" alt="{{ song.name }}" style="width:100%; max-width:400px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+            <p style="font-size:18px; margin:10px 0 0;"><strong>{{ song.name }}</strong></p>
+            <p style="font-size:16px; margin:5px 0;">by {{ song.artist }}</p>
+            <p><a href="{{ song.external }}" target="_blank" style="color:#6c5ce7; font-weight:bold;">▶ Listen on Spotify</a></p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="text-align:center;">No songs to display. Please submit a recommendation first.</p>
+    {% endif %}
 
     <div style="text-align:center; margin-top:30px;">
-      <a href="/recommend" style="color:#6c5ce7; text-decoration:none; font-size:16px;">🔙 Back to Recommendations</a>
+      <a href="/categories" style="color:#6c5ce7;">🔙 Back to Categories</a>
     </div>
-  </div>
-
-</body>
-</html>
+  </d
